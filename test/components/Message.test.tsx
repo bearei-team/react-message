@@ -9,6 +9,7 @@ describe('test/components/Message.test.ts', () => {
   test('It should be a render message', async () => {
     const {getByDataCy} = render(
       <Message<HTMLDivElement>
+        defaultVisible={true}
         renderMain={({...props}) => (
           <div {...pickHTMLAttributes(props)} data-cy="message">
             "message"

@@ -1,8 +1,17 @@
 import {DefaultEvent} from '@bearei/react-util';
-import type {HandleEvent} from '@bearei/react-util/lib/event';
-import handleEvent from '@bearei/react-util/lib/event';
-import {DetailedHTMLProps, HTMLAttributes, ReactNode, Ref, TouchEvent, useRef} from 'react';
-import {useId, useCallback, useEffect, useState} from 'react';
+import handleEvent, {HandleEvent} from '@bearei/react-util/lib/event';
+import {
+  useId,
+  useCallback,
+  useEffect,
+  useState,
+  DetailedHTMLProps,
+  HTMLAttributes,
+  ReactNode,
+  Ref,
+  TouchEvent,
+  useRef,
+} from 'react';
 import type {GestureResponderEvent, ViewProps} from 'react-native';
 
 /**
@@ -46,7 +55,7 @@ export interface BaseMessageProps<T, E>
   /**
    * The contents of the message prompt
    */
-  message?: ReactNode;
+  content?: ReactNode;
 
   /**
    * Message type
@@ -168,15 +177,18 @@ function Message<T, E = MessageClickEvent<T>>({
   );
 
   const clearTimer = () => timerRef.current && clearInterval(timerRef.current);
-  const handleCallback = (e: E & DefaultEvent) => {
-    clearTimer();
+  const handleCallback = useCallback(
+    (e: E & DefaultEvent) => {
+      clearTimer();
 
-    const nextVisible = !messageOptions.visible;
-    const options = {event: e, visible: nextVisible};
+      const nextVisible = !messageOptions.visible;
+      const options = {event: e, visible: nextVisible};
 
-    setMessageOptions(options);
-    handleMessageOptionsChange(options);
-  };
+      setMessageOptions(options);
+      handleMessageOptionsChange(options);
+    },
+    [handleMessageOptionsChange, messageOptions.visible],
+  );
 
   const bindEvent = () => (event ? {[event]: handleEvent(handleCallback)} : undefined);
 
@@ -188,16 +200,7 @@ function Message<T, E = MessageClickEvent<T>>({
         const change = currentOptions.visible !== nextVisible && status === 'succeeded';
         const nextOptions = {visible: nextVisible};
 
-        if (change) {
-          handleMessageOptionsChange(nextOptions);
-
-          nextVisible &&
-            duration &&
-            (timerRef.current = setTimeout(
-              () => handleMessageOptionsChange(nextOptions),
-              duration,
-            ));
-        }
+        change && handleMessageOptionsChange(nextOptions);
 
         return nextOptions;
       });
@@ -205,7 +208,16 @@ function Message<T, E = MessageClickEvent<T>>({
     status === 'idle' && setStatus('succeeded');
 
     return () => clearTimer();
-  }, [defaultVisible, duration, handleMessageOptionsChange, status, visible]);
+  }, [defaultVisible, handleMessageOptionsChange, status, visible]);
+
+  useEffect(() => {
+    if (messageOptions.visible && status === 'succeeded') {
+      timerRef.current = setTimeout(
+        () => handleCallback({type: 'NodeJS.Timeout'} as unknown as E & DefaultEvent),
+        duration,
+      );
+    }
+  }, [duration, handleCallback, messageOptions.visible, status]);
 
   const main = renderMain?.({...childrenProps, ...bindEvent()});
   const content = <>{main}</>;
