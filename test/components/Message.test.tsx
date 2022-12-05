@@ -34,10 +34,15 @@ describe('test/components/Message.test.ts', () => {
     const {getByDataCy} = render(
       <Message<HTMLDivElement>
         onVisible={({visible}) => (result = visible)}
-        event="onClick"
+        onClick={() => {}}
         renderMain={({onClick, ...props}) => (
           <div {...pickHTMLAttributes(props)} data-cy="message" onClick={onClick}>
             "message"
+          </div>
+        )}
+        renderContainer={({id, children}) => (
+          <div data-cy="container" data-id={id} tabIndex={1}>
+            {children}
           </div>
         )}
       />,
