@@ -8,7 +8,7 @@ import {render} from '../utils/testUtils';
 describe('test/components/Message.test.ts', () => {
   test('It should be a render message', async () => {
     const {getByDataCy} = render(
-      <Message<HTMLDivElement>
+      <Message
         defaultVisible={true}
         renderMain={({...props}) => (
           <div {...pickHTMLAttributes(props)} data-cy="message">
@@ -32,7 +32,7 @@ describe('test/components/Message.test.ts', () => {
     let result!: boolean | undefined;
 
     const {getByDataCy} = render(
-      <Message<HTMLDivElement>
+      <Message
         onVisible={({visible}) => (result = visible)}
         onClick={() => {}}
         renderMain={({onClick, ...props}) => (
