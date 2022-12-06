@@ -16,14 +16,9 @@ import type {GestureResponderEvent, ViewProps} from 'react-native';
 /**
  * Message options
  */
-export interface MessageOptions<E = unknown> {
+export interface MessageOptions<E = unknown> extends Pick<BaseMessageProps, 'visible'> {
   /**
-   * Message the visible status
-   */
-  visible?: boolean;
-
-  /**
-   * Event that triggers a message visible state change
+   * Triggers an event when a message option changes
    */
   event?: E;
 }
@@ -33,7 +28,7 @@ export interface MessageOptions<E = unknown> {
  */
 export interface BaseMessageProps<T = HTMLElement>
   extends Omit<
-    DetailedHTMLProps<HTMLAttributes<T>, T> & ViewProps & Pick<MessageOptions, 'visible'>,
+    DetailedHTMLProps<HTMLAttributes<T>, T> & ViewProps,
     'title' | 'onClick' | 'onTouchEnd' | 'onPress' | 'type'
   > {
   /**
@@ -42,17 +37,22 @@ export interface BaseMessageProps<T = HTMLElement>
   ref?: Ref<T>;
 
   /**
-   * Set the default visible state of the message
+   * Message visible state
+   */
+  visible?: boolean;
+
+  /**
+   * The default visible state for the message
    */
   defaultVisible?: boolean;
 
   /**
-   * Set the message display duration
+   * Message display duration
    */
   duration?: number;
 
   /**
-   * The contents of the message prompt
+   * Message content
    */
   content?: ReactNode;
 
@@ -62,37 +62,37 @@ export interface BaseMessageProps<T = HTMLElement>
   type?: 'normal' | 'success' | 'warning' | 'error';
 
   /**
-   * Set the icon to close
+   * Message close icon
    */
   closeIcon?: ReactNode;
 
   /**
-   * Whether to display the close icon
+   * Whether the message close button icon is visible
    */
   closeIconVisible?: boolean;
 
   /**
-   * Call back this function when the message visible state changes
+   * This function is called when the message visible state changes
    */
   onVisible?: <E>(options: MessageOptions<E>) => void;
 
   /**
-   * Call this function when the message closes
+   * This function is called when the message is closed
    */
   onClose?: <E>(options: MessageOptions<E>) => void;
 
   /**
-   * Call this function back when you click the message
+   * This function is called when message is clicked
    */
   onClick?: (e: React.MouseEvent<T, MouseEvent>) => void;
 
   /**
-   * Call this function after pressing the message
+   * This function is called when the message is pressed
    */
   onTouchEnd?: (e: TouchEvent<T>) => void;
 
   /**
-   * Call this function after pressing the message -- react native
+   * This function is called when the message is pressed -- react native
    */
   onPress?: (e: GestureResponderEvent) => void;
 }
@@ -132,13 +132,13 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
     visible,
     defaultVisible,
     duration,
-    onVisible,
-    onClose,
-    renderMain,
-    renderContainer,
     onClick,
     onPress,
+    onClose,
+    onVisible,
     onTouchEnd,
+    renderMain,
+    renderContainer,
     ...args
   } = props;
 
@@ -194,10 +194,10 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
 
     typeof nextVisible === 'boolean' &&
       setMessageOptions(currentOptions => {
-        const update = currentOptions.visible !== nextVisible && status === 'succeeded';
+        const isUpdate = currentOptions.visible !== nextVisible && status === 'succeeded';
         const nextOptions = {visible: nextVisible};
 
-        update && handleMessageOptionsChange(nextOptions);
+        isUpdate && handleMessageOptionsChange(nextOptions);
 
         return nextOptions;
       });
@@ -206,9 +206,9 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
   }, [defaultVisible, handleMessageOptionsChange, status, visible]);
 
   useEffect(() => {
-    if (messageOptions.visible && status === 'succeeded') {
-      timerRef.current = setTimeout(() => handleResponse({type: 'NodeJS.Timeout'}), duration);
-    }
+    messageOptions.visible &&
+      status === 'succeeded' &&
+      (timerRef.current = setTimeout(() => handleResponse({type: 'NodeJS.Timeout'}), duration));
 
     return () => clearTimer();
   }, [duration, handleResponse, messageOptions.visible, status]);

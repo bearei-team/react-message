@@ -10,14 +10,18 @@ Base message components that support React and React native
 
 | Name | Type | Required | Description |
 | :-- | --: | --: | :-- |
-| defaultVisible | `boolean` | ✘ | Set the default visible state of the message |
-| duration | `number` | ✘ | Set the message display duration |
-| content | `ReactNode` | ✘ | The contents of the message prompt |
+| visible | `boolean` | ✘ | Message visible state |
+| defaultVisible | `boolean` | ✘ | The default visible state for the message |
+| duration | `number` | ✘ | Message display duration |
+| content | `ReactNode` | ✘ | Message content |
 | type | `normal` `success` `warning` `error` | ✘ | Message type |
-| closeIcon | `ReactNode` | ✘ | Set the icon to close |
-| closeIconVisible | `boolean` | ✘ | Whether to display the close icon |
-| onVisible | `(options: MessageOptions) => void` | ✘ | Call back this function when the message visible state changes |
-| onClose | `(options: MessageOptions) => void` | ✘ | Call this function when the message closes |
+| closeIcon | `ReactNode` | ✘ | Message close icon |
+| closeIconVisible | `boolean` | ✘ | WWhether the message close button icon is visible |
+| onVisible | `(options: MessageOptions) => void` | ✘ | This function is called when the message visible state changes |
+| onClose | `(options: MessageOptions) => void` | ✘ | This function is called when the message is closed |
+| onClick | `(options: React.MouseEvent) => void` | ✘ | This function is called when message is clicked |
+| onTouchEnd | `(options: React.TouchEvent) => void` | ✘ | This function is called when the message is pressed |
+| onPress | `(options: GestureResponderEvent) => void` | ✘ | This function is called when the message is pressed -- react native |
 | renderMain | `(options: MessageMainProps) => void` | ✘ | Render the message main |
 | renderContainer | `(options: MessageContainerProps) => void` | ✘ | Render the message container |
 
@@ -29,14 +33,10 @@ import ReactDOM from 'react-dom';
 import Message from '@bearei/react-message';
 
 const message = (
-  <Message<HTMLDivElement>
-    renderMain={({...props}) => (
-      <div {...pickHTMLAttributes(props)} data-cy="message">
-        "message"
-      </div>
-    )}
+  <Message
+    renderMain={({...props}) => <div {...props}>"message"</div>}
     renderContainer={({id, children}) => (
-      <div data-cy="container" data-id={id} tabIndex={1}>
+      <div data-id={id} tabIndex={1}>
         {children}
       </div>
     )}
