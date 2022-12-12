@@ -104,12 +104,12 @@ export interface MessageProps<T> extends BaseMessageProps<T> {
   /**
    * Render the message main
    */
-  renderMain?: (props: MessageMainProps) => ReactNode;
+  renderMain: (props: MessageMainProps<T>) => ReactNode;
 
   /**
    * Render the message container
    */
-  renderContainer?: (props: MessageContainerProps<T>) => ReactNode;
+  renderContainer: (props: MessageContainerProps) => ReactNode;
 }
 
 /**
@@ -123,8 +123,8 @@ export interface MessageChildrenProps extends Omit<BaseMessageProps, 'ref'> {
   children?: ReactNode;
 }
 
-export type MessageMainProps = MessageChildrenProps;
-export type MessageContainerProps<T> = MessageChildrenProps & Pick<BaseMessageProps<T>, 'ref'>;
+export type MessageMainProps<T> = MessageChildrenProps & Pick<BaseMessageProps<T>, 'ref'>;
+export type MessageContainerProps = MessageChildrenProps;
 
 const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
   const {
@@ -213,13 +213,8 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
     return () => clearTimer();
   }, [duration, handleResponse, messageOptions.visible, status]);
 
-  const main = renderMain?.({...childrenProps, ...bindEvents(events, handleCallback)});
-  const content = <>{main}</>;
-  const container = renderContainer?.({
-    ...childrenProps,
-    children: content,
-    ref,
-  });
+  const main = renderMain({...childrenProps, ref, ...bindEvents(events, handleCallback)});
+  const container = renderContainer({...childrenProps, children: main});
 
   return <>{container}</>;
 };

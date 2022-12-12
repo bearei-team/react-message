@@ -22,8 +22,8 @@ Base message components that support React and React native
 | onClick | `(options: React.MouseEvent) => void` | ✘ | This function is called when message is clicked |
 | onTouchEnd | `(options: React.TouchEvent) => void` | ✘ | This function is called when the message is pressed |
 | onPress | `(options: GestureResponderEvent) => void` | ✘ | This function is called when the message is pressed -- react native |
-| renderMain | `(options: MessageMainProps) => void` | ✘ | Render the message main |
-| renderContainer | `(options: MessageContainerProps) => void` | ✘ | Render the message container |
+| renderMain | `(options: MessageMainProps) => void` | ✔ | Render the message main |
+| renderContainer | `(options: MessageContainerProps) => void` | ✔ | Render the message container |
 
 ## Use
 
