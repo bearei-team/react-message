@@ -1,4 +1,7 @@
-import {bindEvents, handleDefaultEvent} from '@bearei/react-util/lib/event';
+import {
+  bindEvents,
+  handleDefaultEvent,
+} from '@bearei/react-util/lib/commonjs/event';
 import {
   DetailedHTMLProps,
   HTMLAttributes,
@@ -11,12 +14,13 @@ import {
   useRef,
   useState,
 } from 'react';
-import type {GestureResponderEvent, ViewProps} from 'react-native';
+import type { GestureResponderEvent, ViewProps } from 'react-native';
 
 /**
  * Message options
  */
-export interface MessageOptions<E = unknown> extends Pick<BaseMessageProps, 'visible'> {
+export interface MessageOptions<T, E = unknown>
+  extends Pick<BaseMessageProps<T>, 'visible'> {
   /**
    * Triggers an event when a message option changes
    */
@@ -26,7 +30,7 @@ export interface MessageOptions<E = unknown> extends Pick<BaseMessageProps, 'vis
 /**
  * Base message props
  */
-export interface BaseMessageProps<T = HTMLElement>
+export interface BaseMessageProps<T>
   extends Omit<
     DetailedHTMLProps<HTMLAttributes<T>, T> & ViewProps,
     'title' | 'onClick' | 'onTouchEnd' | 'onPress' | 'type'
@@ -74,12 +78,12 @@ export interface BaseMessageProps<T = HTMLElement>
   /**
    * This function is called when the message visible state changes
    */
-  onVisible?: <E>(options: MessageOptions<E>) => void;
+  onVisible?: <E>(options: MessageOptions<T, E>) => void;
 
   /**
    * This function is called when the message is closed
    */
-  onClose?: <E>(options: MessageOptions<E>) => void;
+  onClose?: <E>(options: MessageOptions<T, E>) => void;
 
   /**
    * This function is called when message is clicked
@@ -109,13 +113,14 @@ export interface MessageProps<T> extends BaseMessageProps<T> {
   /**
    * Render the message container
    */
-  renderContainer: (props: MessageContainerProps) => ReactNode;
+  renderContainer: (props: MessageContainerProps<T>) => ReactNode;
 }
 
 /**
  * Message children props
  */
-export interface MessageChildrenProps extends Omit<BaseMessageProps, 'ref'> {
+export interface MessageChildrenProps<T>
+  extends Omit<BaseMessageProps<T>, 'ref'> {
   /**
    * Component unique ID
    */
@@ -123,10 +128,14 @@ export interface MessageChildrenProps extends Omit<BaseMessageProps, 'ref'> {
   children?: ReactNode;
 }
 
-export type MessageMainProps<T> = MessageChildrenProps & Pick<BaseMessageProps<T>, 'ref'>;
-export type MessageContainerProps = MessageChildrenProps;
+export type MessageMainProps<T> = MessageChildrenProps<T> &
+  Pick<BaseMessageProps<T>, 'ref'>;
 
-const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
+export type MessageContainerProps<T> = MessageChildrenProps<T>;
+
+const Message = <T extends HTMLElement = HTMLElement>(
+  props: MessageProps<T>,
+) => {
   const {
     ref,
     visible,
@@ -146,7 +155,10 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
   const events = Object.keys(props).filter(key => key.startsWith('on'));
   const [status, setStatus] = useState('idle');
   const timerRef = useRef<NodeJS.Timeout>();
-  const [messageOptions, setMessageOptions] = useState<MessageOptions>({visible: false});
+  const [messageOptions, setMessageOptions] = useState<MessageOptions<T>>({
+    visible: false,
+  });
+
   const childrenProps = {
     ...args,
     id,
@@ -155,7 +167,7 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
   };
 
   const handleMessageOptionsChange = useCallback(
-    <E,>(options: MessageOptions<E>) => {
+    <E,>(options: MessageOptions<T, E>) => {
       onVisible?.(options);
       !options.visible && onClose?.(options);
     },
@@ -168,7 +180,7 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
       clearTimer();
 
       const nextVisible = !messageOptions.visible;
-      const options = {event: e, visible: nextVisible};
+      const options = { event: e, visible: nextVisible };
 
       setMessageOptions(options);
       handleMessageOptionsChange(options);
@@ -182,8 +194,12 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
       onClick: handleDefaultEvent((e: React.MouseEvent<T, MouseEvent>) =>
         handleResponse(e, onClick),
       ),
-      onTouchEnd: handleDefaultEvent((e: TouchEvent<T>) => handleResponse(e, onTouchEnd)),
-      onPress: handleDefaultEvent((e: GestureResponderEvent) => handleResponse(e, onPress)),
+      onTouchEnd: handleDefaultEvent((e: TouchEvent<T>) =>
+        handleResponse(e, onTouchEnd),
+      ),
+      onPress: handleDefaultEvent((e: GestureResponderEvent) =>
+        handleResponse(e, onPress),
+      ),
     };
 
     return event[key as keyof typeof event];
@@ -194,8 +210,9 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
 
     typeof nextVisible === 'boolean' &&
       setMessageOptions(currentOptions => {
-        const isUpdate = currentOptions.visible !== nextVisible && status === 'succeeded';
-        const nextOptions = {visible: nextVisible};
+        const isUpdate =
+          currentOptions.visible !== nextVisible && status === 'succeeded';
+        const nextOptions = { visible: nextVisible };
 
         isUpdate && handleMessageOptionsChange(nextOptions);
 
@@ -208,13 +225,20 @@ const Message = <T extends HTMLElement>(props: MessageProps<T>) => {
   useEffect(() => {
     messageOptions.visible &&
       status === 'succeeded' &&
-      (timerRef.current = setTimeout(() => handleResponse({type: 'NodeJS.Timeout'}), duration));
+      (timerRef.current = setTimeout(
+        () => handleResponse({ type: 'NodeJS.Timeout' }),
+        duration,
+      ));
 
     return () => clearTimer();
   }, [duration, handleResponse, messageOptions.visible, status]);
 
-  const main = renderMain({...childrenProps, ref, ...bindEvents(events, handleCallback)});
-  const container = renderContainer({...childrenProps, children: main});
+  const main = renderMain({
+    ...childrenProps,
+    ref,
+    ...bindEvents(events, handleCallback),
+  });
+  const container = renderContainer({ ...childrenProps, children: main });
 
   return <>{container}</>;
 };
