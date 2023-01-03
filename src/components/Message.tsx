@@ -238,6 +238,7 @@ const Message = <T extends HTMLElement = HTMLElement>(
     ref,
     ...bindEvents(events, handleCallback),
   });
+
   const container = renderContainer({ ...childrenProps, children: main });
 
   return <>{container}</>;
