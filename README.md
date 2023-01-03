@@ -34,8 +34,8 @@ import Message from '@bearei/react-message';
 
 const message = (
   <Message
-    renderMain={({...props}) => <div {...props}>"message"</div>}
-    renderContainer={({id, children}) => (
+    renderMain={({ ...props }) => <div {...props}>"message"</div>}
+    renderContainer={({ id, children }) => (
       <div data-id={id} tabIndex={1}>
         {children}
       </div>
