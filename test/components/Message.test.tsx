@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import Message from '../../src/components/Message';
-import { render } from '../utils/test_utils';
+import { render } from '../utils/test-utils';
 
 describe('test/components/Message.test.ts', () => {
   test('It should be a render message', async () => {
