@@ -5,6 +5,7 @@ import {
 import {
   DetailedHTMLProps,
   HTMLAttributes,
+  MouseEvent,
   ReactNode,
   Ref,
   TouchEvent,
@@ -88,7 +89,7 @@ export interface BaseMessageProps<T>
   /**
    * This function is called when message is clicked
    */
-  onClick?: (e: React.MouseEvent<T, MouseEvent>) => void;
+  onClick?: (e: MouseEvent<T>) => void;
 
   /**
    * This function is called when the message is pressed
@@ -132,6 +133,7 @@ export type MessageMainProps<T> = MessageChildrenProps<T> &
   Pick<BaseMessageProps<T>, 'ref'>;
 
 export type MessageContainerProps<T> = MessageChildrenProps<T>;
+export type EventType = 'onClick' | 'onPress' | 'onTouchEnd';
 
 const Message = <T extends HTMLElement = HTMLElement>(
   props: MessageProps<T>,
@@ -152,12 +154,16 @@ const Message = <T extends HTMLElement = HTMLElement>(
   } = props;
 
   const id = useId();
-  const events = Object.keys(props).filter(key => key.startsWith('on'));
   const [status, setStatus] = useState('idle');
   const timerRef = useRef<NodeJS.Timeout>();
   const [messageOptions, setMessageOptions] = useState<MessageOptions<T>>({
     visible: false,
   });
+
+  const bindEvenNames = ['onClick', 'onPress', 'onTouchEnd'];
+  const eventNames = Object.keys(props).filter(key =>
+    bindEvenNames.includes(key),
+  ) as EventType[];
 
   const childrenProps = {
     ...args,
@@ -189,9 +195,9 @@ const Message = <T extends HTMLElement = HTMLElement>(
     [handleMessageOptionsChange, messageOptions.visible],
   );
 
-  const handleCallback = (key: string) => {
-    const event = {
-      onClick: handleDefaultEvent((e: React.MouseEvent<T, MouseEvent>) =>
+  const handleCallback = (event: EventType) => {
+    const eventFunctions = {
+      onClick: handleDefaultEvent((e: MouseEvent<T>) =>
         handleResponse(e, onClick),
       ),
       onTouchEnd: handleDefaultEvent((e: TouchEvent<T>) =>
@@ -202,7 +208,7 @@ const Message = <T extends HTMLElement = HTMLElement>(
       ),
     };
 
-    return event[key as keyof typeof event];
+    return eventFunctions[event];
   };
 
   useEffect(() => {
@@ -236,7 +242,11 @@ const Message = <T extends HTMLElement = HTMLElement>(
   const main = renderMain({
     ...childrenProps,
     ref,
-    ...bindEvents(events, handleCallback),
+    ...(bindEvents(eventNames, handleCallback) as {
+      onClick?: (e: MouseEvent<T>) => void;
+      onTouchEnd?: (e: TouchEvent<T>) => void;
+      onPress?: (e: GestureResponderEvent) => void;
+    }),
   });
 
   const container = renderContainer({ ...childrenProps, children: main });
